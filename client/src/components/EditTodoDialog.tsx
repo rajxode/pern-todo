@@ -18,7 +18,7 @@ interface todo {
 interface props {
   open: boolean;
   setOpen: React.Dispatch<React.SetStateAction<boolean>>;
-  todo:todo | null;
+  todo:todo;
 }
 
 const EditTodoDialog: React.FC<props> = ({ open, setOpen, todo }) => {
