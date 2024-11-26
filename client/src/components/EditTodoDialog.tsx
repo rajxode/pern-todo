@@ -11,7 +11,7 @@ interface todo {
     id:number;
     name: string;
     status:string;
-    dueDate:string;
+    duedate:string;
     priority:string;
   }
 
@@ -73,8 +73,8 @@ const EditTodoDialog: React.FC<props> = ({ open, setOpen, todo }) => {
                     </div>
 
                     <div className="w-full flex justify-start items-center mt-4">
-                      <label htmlFor="todoDueDate" className="mr-3">Due Date: </label>
-                      <input id="todoDueDate" type="date" className="w-auto focus:outline-none border-b border-blue-400" value={todo.dueDate}/>
+                      <label htmlFor="todoDuedate" className="mr-3">Due Date: </label>
+                      <input id="todoDuedate" type="date" className="w-auto focus:outline-none border-b border-blue-400" value={todo.duedate}/>
                     </div>
                   </div>
                 </div>

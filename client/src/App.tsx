@@ -1,104 +1,32 @@
-import { useState } from "react";
+
+import { useEffect, useState } from "react";
+import axios from "axios";
 import AddTodoDialog from "./components/AddTodoDialog";
 import EditTodoDialog from "./components/EditTodoDialog";
 
-interface todo {
+interface TodoData {
   id:number;
   name: string;
   status:string;
-  dueDate:string;
+  duedate:string;
   priority:string;
 }
-
-let todos:Array<todo> = [
-  {
-    "id": 1,
-    "name": "Buy groceries",
-    "status": "pending",
-    "dueDate": "2024-11-25",
-    "priority": "high"
-  },
-  {
-    "id": 2,
-    "name": "Finish project report",
-    "status": "not done",
-    "dueDate": "2024-11-30",
-    "priority": "high"
-  },
-  {
-    "id": 3,
-    "name": "Walk the dog",
-    "status": "fullfilled",
-    "dueDate": "2024-11-23",
-    "priority": "medium"
-  },
-  {
-    "id": 4,
-    "name": "Attend team meeting",
-    "status": "pending",
-    "dueDate": "2024-11-25",
-    "priority": "low"
-  },
-  {
-    "id": 5,
-    "name": "Call mom",
-    "status": "fullfilled",
-    "dueDate": "2024-11-22",
-    "priority": "medium"
-  },
-  {
-    "id": 6,
-    "name": "Complete online course",
-    "status": "not done",
-    "dueDate": "2024-12-01",
-    "priority": "high"
-  },
-  {
-    "id": 7,
-    "name": "Clean the house",
-    "status": "pending",
-    "dueDate": "2024-11-25",
-    "priority": "low"
-  },
-  {
-    "id": 8,
-    "name": "Read new book",
-    "status": "not done",
-    "dueDate": "2024-12-10",
-    "priority": "medium"
-  },
-  {
-    "id": 9,
-    "name": "Prepare dinner",
-    "status": "fullfilled",
-    "dueDate": "2024-11-23",
-    "priority": "medium"
-  },
-  {
-    "id": 10,
-    "name": "Organize email inbox",
-    "status": "pending",
-    "dueDate": "2024-11-28",
-    "priority": "low"
-  }
-]
-
 
 function App() {
   const [search, setSearch] = useState("");
   const [open, setOpen] = useState(false);
   const [openEdit, setOpenEdit] = useState(false);
-  const [todoList, setTodoList] = useState<Array<todo>>(todos);
-  const [editTodo, setEditTodo] = useState<todo>({
+  const [todoList, setTodoList] = useState<Array<TodoData>>([]);
+  const [editTodo, setEditTodo] = useState<TodoData>({
     id:-1,
     name:"",
     status:"pending",
-    dueDate:"1979-01-01",
+    duedate:"1979-01-01",
     priority:"low"
   });
 
   const handleEditClick = (i:number) => {
-    setEditTodo(todos[i]);
+    setEditTodo(todoList[i]);
     setOpenEdit(true);
   }
 
@@ -106,6 +34,20 @@ function App() {
     let newTodos = todoList.filter((_,index) => index != i);
     setTodoList(newTodos);
   }
+
+
+  useEffect(() => {
+    (
+      async() => {
+        const response = await axios.get(`${import.meta.env.VITE_BASEURL}/my-todos`);
+        if(response.data.success) {
+          setTodoList(response.data.todos);
+        } else {
+          setTodoList([]);
+        }
+      }
+    )();
+  },[]);
 
   return (
     <div className="w-full min-h-screen bg-gray-200 px-4 sm:px-[5%] md:px-[10%] py-[5vh]">
@@ -153,7 +95,7 @@ function App() {
                   <div className="text-start flex-1">{i + 1}</div>
                   <div className="text-start flex-1">{todo.name}</div>
                   <div className="text-start flex-1">{todo.status}</div>
-                  <div className="text-start flex-1">{todo.dueDate}</div>
+                  <div className="text-start flex-1">{todo.duedate}</div>
                   <div className="text-start flex-1">{todo.priority}</div>
                   <div>
                     <span 

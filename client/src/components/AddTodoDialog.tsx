@@ -1,5 +1,6 @@
 
-import React from "react";
+import React, { useState } from "react";
+import axios, { toFormData } from "axios";
 import {
   Dialog,
   DialogBackdrop,
@@ -7,12 +8,53 @@ import {
   DialogTitle,
 } from "@headlessui/react";
 
-interface props {
+interface Props {
   open: boolean;
   setOpen: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
-const AddTodoDialog: React.FC<props> = ({ open, setOpen }) => {
+interface TodoData {
+  name:string;
+  duedate:string;
+  status:string;
+  priority:string;
+}
+
+const dummyTodo : TodoData = {
+  name:"",
+  status:"pending",
+  priority:"low",
+  duedate:""
+}
+
+const AddTodoDialog: React.FC<Props> = ({ open, setOpen }) => {
+
+  const [todoData, setTodoData] = useState<TodoData>(dummyTodo);
+
+  const handleAddClick = async(e:React.MouseEvent<HTMLButtonElement>) => {
+    e.preventDefault();
+    try {
+      if(!todoData.name || !todoData.duedate ) {
+        console.log("all values required");
+        return;
+      }
+      const response = await axios.post(`${import.meta.env.VITE_BASEURL}/add-todo`,{
+        name:todoData.name,
+        priority:todoData.priority,
+        status:todoData.status,
+        dueDate:todoData.duedate
+      })
+
+      if(response.data.success) {
+        setTodoData(dummyTodo);
+        setOpen(false);
+      }
+
+    } catch (error) {
+      console.log('error in adding new todo');      
+    }
+  }
+
   return (
     <Dialog open={open} onClose={setOpen} className="relative z-10">
       <DialogBackdrop
@@ -42,30 +84,52 @@ const AddTodoDialog: React.FC<props> = ({ open, setOpen }) => {
                   <div className="mt-2 flex flex-col w-full">
                     <div className="w-full flex justify-between items-center">
                       <label htmlFor="todoName" className="mr-3">Todo: </label>
-                      <input id="todoName" type="text" placeholder="todo.." className="w-full focus:outline-none border-b border-blue-400" />
+                      <input 
+                        id="todoName" 
+                        type="text" 
+                        placeholder="todo.." 
+                        value={todoData?.name}
+                        onChange={(e) => setTodoData({...todoData, name:e.target.value})}
+                        className="w-full focus:outline-none border-b border-blue-400" 
+                      />
                     </div>
 
                     <div className="w-full flex justify-between items-center mt-4">
                       <label htmlFor="todoStatus" className="mr-3">Status: </label>
-                      <select id="todoStatus" className="w-full focus:outline-none border-b border-blue-400 pb-1">
-                        <option>Pending</option>
-                        <option>Fullfilled</option>
-                        <option>Failed</option>
+                      <select 
+                        id="todoStatus"
+                        value={todoData?.status}
+                        onChange={(e) => setTodoData({...todoData, status:e.target.value})}
+                        className="w-full focus:outline-none border-b border-blue-400 pb-1"
+                      >
+                        <option value="pending">Pending</option>
+                        <option value="fulfilled">Fulfilled</option>
+                        <option value="not done">Failed</option>
                       </select>
                     </div>
 
                     <div className="w-full flex justify-between items-center mt-4">
                       <label htmlFor="todoPriority" className="mr-3">Priority: </label>
-                      <select id="todoPriority" className="w-full focus:outline-none border-b border-blue-400 pb-1">
-                        <option>Low</option>
-                        <option>Medium</option>
-                        <option>Hight</option>
+                      <select 
+                        id="todoPriority" 
+                        value={todoData.priority}
+                        onChange={(e) => setTodoData({...todoData, priority:e.target.value})}
+                        className="w-full focus:outline-none border-b border-blue-400 pb-1"
+                      >
+                        <option value="low">Low</option>
+                        <option value="mid">Medium</option>
+                        <option value="high">High</option>
                       </select>
                     </div>
 
                     <div className="w-full flex justify-start items-center mt-4">
                       <label htmlFor="todoDueDate" className="mr-3">Due Date: </label>
-                      <input id="todoDueDate" type="date" className="w-auto focus:outline-none border-b border-blue-400" />
+                      <input 
+                        id="todoDueDate" 
+                        type="date" 
+                        value={todoData.duedate}
+                        onChange={(e) => setTodoData({...todoData, duedate:e.target.value})}
+                        className="w-auto focus:outline-none border-b border-blue-400" />
                     </div>
                   </div>
                 </div>
@@ -83,7 +147,7 @@ const AddTodoDialog: React.FC<props> = ({ open, setOpen }) => {
               <button
                 type="button"
                 data-autofocus
-                onClick={() => setOpen(false)}
+                onClick={handleAddClick}
                 className="mt-3 inline-flex w-full justify-center rounded-md bg-white px-3 py-2 text-sm font-semibold 
                     text-blue-500 shadow-sm ring-1 ring-inset ring-blue-400 hover:bg-blue-50 sm:mt-0 sm:w-auto"
               >
