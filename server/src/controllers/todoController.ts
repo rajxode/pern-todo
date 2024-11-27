@@ -42,10 +42,17 @@ export const addTodo = async (req:Request, res:Response, next:NextFunction) : Pr
             res.status(400).json(responseData);
             return;
         }
-        await pool.query("INSERT INTO todos (name,status,dueDate,priority) VALUES ($1, $2, $3, $4)",[name, status, dueDate, priority]);
+        const addTodoQuery = `
+            INSERT INTO todos 
+            (name,status,dueDate,priority) 
+            VALUES ($1, $2, $3, $4)
+            RETURNING *
+        `;
+        const data = await pool.query(addTodoQuery,[name, status, dueDate, priority]);
         const responseData:ApiResData = {
             success: true,
-            message:"todo added"
+            message:"todo added",
+            todo:data.rows[0]
         }
         res.status(201).json(responseData);
     } catch (error:any) {

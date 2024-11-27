@@ -13,7 +13,6 @@ interface TodoData {
 }
 
 function App() {
-  const [search, setSearch] = useState("");
   const [open, setOpen] = useState(false);
   const [openEdit, setOpenEdit] = useState(false);
   const [todoList, setTodoList] = useState<Array<TodoData>>([]);
@@ -30,9 +29,18 @@ function App() {
     setOpenEdit(true);
   }
 
-  const handleDeleteClick = (i:number) => {
-    let newTodos = todoList.filter((_,index) => index != i);
-    setTodoList(newTodos);
+  const handleDeleteClick = async(i:number) => {
+    try {
+      const response = await axios.delete(`${import.meta.env.VITE_BASEURL}/remove/${i}`);
+      if(response.data.success) {
+        const newTodos = todoList.filter((item) => item.id != i);
+        setTodoList(newTodos);
+      } else {
+        throw new Error("Error in deleting the todo");
+      } 
+    } catch (error:any) {
+      console.log("error in deleting todo", error.message);
+    }
   }
 
 
@@ -55,26 +63,6 @@ function App() {
       <div className="w-full shadow bg-white rounded-md flex justify-around py-[10px]">
         <div className="flex items-center">
           <div className="mr-3 text-blue-500">My Todo</div>
-          <div className="w-auto border-2 border-blue-300 px-3 rounded-full">
-            <span className="mr-2 text-blue-400">
-              <i className="fa-solid fa-magnifying-glass"></i>
-            </span>
-            <input
-              type="text"
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              placeholder="Search..."
-              className="focus:outline-none py-1"
-            />
-            {search.length > 10 && (
-              <span
-                className="ml-2 cursor-pointer text-red-400"
-                onClick={() => setSearch("")}
-              >
-                <i className="fa-regular fa-circle-xmark"></i>
-              </span>
-            )}
-          </div>
         </div>
         <div>
           <button 
@@ -90,6 +78,8 @@ function App() {
       {/* todo list */}
       <div className="w-full mt-[10vh] bg-white rounded-md shadow px-4 py-4">
           {
+            todoList.length > 0
+            ?
             todoList.map((todo,i) => (
               <div key={i} className="w-full bg-gray-200 flex justify-between px-4 py-2 items-center rounded shadow-md mb-3">
                   <div className="text-start flex-1">{i + 1}</div>
@@ -105,7 +95,7 @@ function App() {
                       <i className="fa-regular fa-pen-to-square"></i>
                     </span>
                     <span 
-                      onClick={() => handleDeleteClick(i)}
+                      onClick={() => handleDeleteClick(todo.id)}
                       className="text-red-500 cursor-pointer"
                     >
                       <i className="fa-solid fa-trash"></i>
@@ -113,10 +103,25 @@ function App() {
                   </div>
               </div>
             ))
+            :
+            <div className="w-full text-blue-400 text-center">
+              No Todos
+            </div>
           }
       </div>
-      <AddTodoDialog open={open} setOpen={setOpen} />
-      <EditTodoDialog open={openEdit} setOpen={setOpenEdit} todo={editTodo} />
+      <AddTodoDialog 
+        open={open} 
+        setOpen={setOpen} 
+        setTodoList={setTodoList}
+        todoList={todoList}
+      />
+      <EditTodoDialog 
+        open={openEdit} 
+        setOpen={setOpenEdit} 
+        todo={editTodo}
+        todoList={todoList}
+        setTodoList={setTodoList}
+      />
     </div>
   );
 }

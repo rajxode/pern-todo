@@ -1,6 +1,6 @@
 
 import React, { useState } from "react";
-import axios, { toFormData } from "axios";
+import axios from "axios";
 import {
   Dialog,
   DialogBackdrop,
@@ -11,9 +11,12 @@ import {
 interface Props {
   open: boolean;
   setOpen: React.Dispatch<React.SetStateAction<boolean>>;
+  setTodoList: React.Dispatch<React.SetStateAction<TodoData[]>>;
+  todoList: Array<TodoData>;
 }
 
 interface TodoData {
+  id:number;
   name:string;
   duedate:string;
   status:string;
@@ -21,13 +24,14 @@ interface TodoData {
 }
 
 const dummyTodo : TodoData = {
+  id:0,
   name:"",
   status:"pending",
   priority:"low",
   duedate:""
 }
 
-const AddTodoDialog: React.FC<Props> = ({ open, setOpen }) => {
+const AddTodoDialog: React.FC<Props> = ({ open, setOpen, setTodoList, todoList }) => {
 
   const [todoData, setTodoData] = useState<TodoData>(dummyTodo);
 
@@ -46,6 +50,8 @@ const AddTodoDialog: React.FC<Props> = ({ open, setOpen }) => {
       })
 
       if(response.data.success) {
+        let todo:TodoData = response.data.todo;
+        setTodoList([...todoList, todo]);
         setTodoData(dummyTodo);
         setOpen(false);
       }

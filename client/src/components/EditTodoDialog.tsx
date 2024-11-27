@@ -1,5 +1,6 @@
 
-import React from "react";
+import React, { useState } from "react";
+import axios from "axios";
 import {
   Dialog,
   DialogBackdrop,
@@ -7,21 +8,53 @@ import {
   DialogTitle,
 } from "@headlessui/react";
 
-interface todo {
+interface Todo {
     id:number;
     name: string;
     status:string;
     duedate:string;
     priority:string;
-  }
-
-interface props {
-  open: boolean;
-  setOpen: React.Dispatch<React.SetStateAction<boolean>>;
-  todo:todo;
 }
 
-const EditTodoDialog: React.FC<props> = ({ open, setOpen, todo }) => {
+interface UpdateTodo {
+  status:string;
+  priority:string;
+}
+
+interface Props {
+  open: boolean;
+  setOpen: React.Dispatch<React.SetStateAction<boolean>>;
+  todo:Todo;
+  todoList: Array<Todo>;
+  setTodoList: React.Dispatch<React.SetStateAction<Todo[]>>
+}
+
+const EditTodoDialog: React.FC<Props> = ({ open, setOpen, todo, todoList, setTodoList }) => {
+
+  const [updateData, setUpdateData] = useState<UpdateTodo>({
+    status:todo.status,
+    priority:todo.priority
+  });
+
+  const handleUpdateClick = async(e:React.MouseEvent<HTMLButtonElement>) => {
+    e.preventDefault();
+    try {
+      const response = await axios.put(`${import.meta.env.VITE_BASEURL}/update/${todo.id}`,{
+        status:updateData.status,
+        priority: updateData.priority
+      });
+
+      if(response.data.success) {
+        const resTodo = response.data.todo;
+        const newTodoList = todoList.filter((item) => item.id != todo.id);
+        setTodoList([...newTodoList, resTodo]);
+        setOpen(false);
+      }
+    } catch (error:any) {
+      console.log('error in updating the todo data', error.message);
+    }
+  }
+
   return (
     <Dialog open={open} onClose={setOpen} className="relative z-10">
       <DialogBackdrop
@@ -51,30 +84,50 @@ const EditTodoDialog: React.FC<props> = ({ open, setOpen, todo }) => {
                   <div className="mt-2 flex flex-col w-full">
                     <div className="w-full flex justify-between items-center">
                       <label htmlFor="todoName" className="mr-3">Todo: </label>
-                      <input id="todoName" type="text" value={todo.name} className="w-full focus:outline-none border-b border-blue-400" />
+                      <input 
+                        id="todoName" 
+                        type="text" 
+                        value={todo.name} 
+                        className="w-full focus:outline-none border-b border-blue-400" 
+                      />
                     </div>
 
                     <div className="w-full flex justify-between items-center mt-4">
                       <label htmlFor="todoStatus" className="mr-3">Status: </label>
-                      <select id="todoStatus" className="w-full focus:outline-none border-b border-blue-400 pb-1" value={todo.status}>
-                        <option>Pending</option>
-                        <option>Fullfilled</option>
-                        <option>Failed</option>
+                      <select 
+                        id="todoStatus" 
+                        className="w-full focus:outline-none border-b border-blue-400 pb-1" 
+                        value={updateData.status}
+                        onChange={(e) => setUpdateData({...updateData, status: e.target.value})}
+                      >
+                        <option value="pending">Pending</option>
+                        <option value="fulfilled">Fulfilled</option>
+                        <option value="not done">Not Done</option>
                       </select>
                     </div>
 
                     <div className="w-full flex justify-between items-center mt-4">
                       <label htmlFor="todoPriority" className="mr-3">Priority: </label>
-                      <select id="todoPriority" className="w-full focus:outline-none border-b border-blue-400 pb-1" value={todo.priority}>
-                        <option>Low</option>
-                        <option>Medium</option>
-                        <option>Hight</option>
+                      <select 
+                        id="todoPriority" 
+                        value={updateData.priority}
+                        onChange={(e) => setUpdateData({...updateData, priority: e.target.value })}
+                        className="w-full focus:outline-none border-b border-blue-400 pb-1"
+                      >
+                        <option value="low">Low</option>
+                        <option value="mid">Medium</option>
+                        <option value="high">High</option>
                       </select>
                     </div>
 
                     <div className="w-full flex justify-start items-center mt-4">
                       <label htmlFor="todoDuedate" className="mr-3">Due Date: </label>
-                      <input id="todoDuedate" type="date" className="w-auto focus:outline-none border-b border-blue-400" value={todo.duedate}/>
+                      <input 
+                        id="todoDuedate" 
+                        type="date"
+                        value={todo.duedate}
+                        className="w-auto focus:outline-none border-b border-blue-400"
+                      />
                     </div>
                   </div>
                 </div>
@@ -92,7 +145,7 @@ const EditTodoDialog: React.FC<props> = ({ open, setOpen, todo }) => {
               <button
                 type="button"
                 data-autofocus
-                onClick={() => setOpen(false)}
+                onClick={handleUpdateClick}
                 className="mt-3 inline-flex w-full justify-center rounded-md bg-white px-3 py-2 text-sm font-semibold 
                     text-blue-500 shadow-sm ring-1 ring-inset ring-blue-400 hover:bg-blue-50 sm:mt-0 sm:w-auto"
               >
